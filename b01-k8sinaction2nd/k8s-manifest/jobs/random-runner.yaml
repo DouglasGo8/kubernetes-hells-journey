@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rdn
+spec:
+  # default for completions and parallelism
+  template:
+    metadata:
+      name: rdn
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: rdn
+          image: k8spatterns/random-generator:1.0
+          command:
+            - java
+            - RandomRunner
+            - /logs/random.log
+            - "10"
+          volumeMounts:
+            - mountPath: /logs
+              name: log-volume
+      volumes:
+        - name: log-volume
+          hostPath:
+            path: /example
+            type: Directory
