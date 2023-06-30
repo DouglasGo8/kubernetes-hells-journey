@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-nginx-eksmaster-dep
+  labels:
+    app: frontend-nginx-eksmaster
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend-nginx-eksmaster
+  template:
+    metadata:
+      labels:
+        app: frontend-nginx-eksmaster
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend-nginx-eksmaster
+          image: stacksimplify/kube-frontend-nginx:1.0.0
+          ports:
+            - containerPort: 8080
+
+

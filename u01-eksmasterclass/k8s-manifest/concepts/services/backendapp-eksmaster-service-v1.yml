@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-restapi-svc # !! NGINX PROXYPASS Need This !!
+  labels:
+    app: backend-eksmaster-restapi
+    tier: backend
+spec:
+  type: ClusterIP # default option
+  selector:
+    app: backend-eksmaster-restapi
+  ports:
+    - name: http
+      port: 8080 # ClusterUP service Port
+      targetPort: 8080

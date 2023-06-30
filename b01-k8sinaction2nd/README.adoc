@@ -24,7 +24,7 @@ minikube start --driver=docker --alsologtostderr
 minikube addons enable registry
 minikube dashboard
 minikube dashboard --url
-# oc
+# or kubens
 kubectl create namespace k8s-inaction
 kubectl config set-context --current --namespace=k8s-inaction
 # get current ns
@@ -46,6 +46,8 @@ eval $(minishift oc-env)
 ----
 brew upgrade minikube
 ----
+
+'''
 
 === Quarkus Template info
 
@@ -117,12 +119,13 @@ If you want to learn more about building native executables, please consult http
 * Camel Bean https://camel.apache.org/camel-quarkus/latest/reference/extensions/bean.html[guide]: Invoke methods of Java beans
 * Camel Rest https://camel.apache.org/camel-quarkus/latest/reference/extensions/rest.html[guide]: Expose REST services and their OpenAPI Specification or call external REST services
 
-== Kubernetes in Action 2nd
+
+'''
 
 === Introduction Kubernetes API
 
 .A K8s cluster objects
-image::architecture/thumbs/api_k8s_interaction.jpg[]
+image::../architecture/thumbs/api_k8s_interaction.jpg[]
 
 * They include the applications running in the cluster, their configuration, the load balancers through which they are exposed within the cluster or externally, the underlying servers and the storage used by these applications, the security privileges of users and applications, and many other details of the infrastructure.
 * The collection of all deployments in the cluster is a REST resource exposed at ##/api/v1/deployments##
@@ -132,42 +135,33 @@ For example, the Deployment controller manages Deployment objects.
 
 [source,bash]
 ----
-kubectl get notes
-kubectl get node localhost -o yaml
+k get notes
+k get node localhost -o yaml
 ----
 
 * To use API we need expose the api
 
 [source,bash]
 ----
-kubectl proxy
+k proxy
 ----
 
 === Running workloads in Pods
 
 .Three basic object types comprising a deployed application
-image::architecture/thumbs/comprising_deploy_k8s_pod.jpg[]
+image::../architecture/thumbs/comprising_deploy_k8s_pod.jpg[]
 
-. World -> Service -> Pods <- -> Deployment
-
-. Pod object, represents the ##central and most important concept in K8s## - a running instance of your application, in the K8s we don't deploy containers but groups of them managed as a single unit, ##When a Pod has multiple containers, all of them run on the same worker node##, a single pod instance never spans multiple nodes,
-. Containers are _designed_ to run only a single process, to take full advantage of the features provided by the container runtime, you should consider running only one process in each container.
-. With a pod, you can run closely related processes together, giving them (almost) the same environment as if they were all running in a single container, all containers in a pod share the same Network namespace and thus the network interfaces, IP address(es) and port space that belong to it.
-Because of the shared port space, processes running in containers of the same pod can’t be bound to the same port numbers, All the containers in a pod also see the same system hostname.
-. Each pod can be considered as separated vCPu/Cpu, avoid stuffing all your applications into a single pod, you should divide them so that each pod runs only closely related application processes.
-. ##Kubernetes does not replicate containers within a pod.
-It replicates the entire pod.##
-. You never need to combine multiple applications in a single pod
+. World ->Service ->Pods <-->Deployment
 
 .Containers in a pod sharing the same Network namespace
-image::architecture/thumbs/pod_share_same_network_interface.jpg[]
+image::../architecture/thumbs/pod_share_same_network_interface.jpg[]
 
 ==== Sidecar Containers
 
 . Several containers in a single pod is only appropriate if the application consists of a primary process and one or more processes that complement the operation of the primary process.
 
 .Sidecar Container in same Pod
-image::architecture/thumbs/sidecar.png[]
+image::../architecture/thumbs/sidecar.png[]
 
 ==== How to decide whether to split containers into multiple pods
 
@@ -182,58 +176,61 @@ When deciding whether to use the sidecar pattern and place containers in a singl
 .Create Manifest suing kubectl
 [source,shellscript]
 ----
-kubectl explain pods
-kubectl run mypod --image=tag/image:1.0 -dry-run=client -o yaml > mypod.yaml
+k explain pods
+k run mypod --image=tag/image:1.0 -dry-run=client -o yaml > mypod.yaml
 ----
 
 .Sample Pod Running
-image::architecture/thumbs/pod-running.png[]
+image::../architecture/thumbs/pod-running.png[]
 
 ==== Create/Handle Pod Object
 
 [source,bash]
 ----
-oc apply -f pod-kiada.yaml
-oc get pod kiada
-oc describe pod kiada
-oc get events
-oc get pod kiada -o wide
-oc run --image=curlimages/curl -it --restart=Never --rm client-pod curl {{IP_POD}}:8080
-oc port-forward kiada 8080
-oc logs kiada
-oc logs kiada -f
-oc logs kiada --timestamps=true
-oc logs kiada --since=2m
-oc logs kiada --since-time=2020-02-01T09:50:00Z
-oc exec kiada -- ps aux
-oc exec kiada -- curl -s localhost:8080
-oc exec kiada curl -s localhost:8080
-oc exec -it kiada -- bash
-oc attach kiada
-oc attach -i kiada-stdin # version two using stdin image
+k apply -f pod.appbackend.v01-ch05.yaml
+k get pod app-backend-v01-ch05
+k describe pod app-backend-v01-ch05
+k get events -w
+k get pod app-backend-v01-ch05 -o wide
+k run --image=curlimages/curl -it --restart=Never --rm client-pod curl {{IP_POD}}:8080
+k port-forward kiada 8080
+k logs kiada
+k logs kiada -f
+k logs kiada --timestamps=true
+# Filtering logs
+k logs kiada --since=2m
+k logs kiada --since-time=2020-02-01T09:50:00Z
+# Reduce total lines
+k logs kiada --tail=10
+k exec kiada -- ps aux
+k exec kiada -- curl -s lkalhost:8080
+k exec kiada curl -s lkalhost:8080
+k exec -it app-backend-v01-ch05 -- bash
+k attach app-backend-v01-ch05
+k attach -i kiada-stdin # version two using stdin image
+# The kubectl port-forward command can also forward connections to services instead of pods
+k port-forward kiada-ssl 8080 8443 990
+k logs kiada-ssl -c kiada
+k logs kiada-ssl --all-containers
+k get pods -w # watch status changing
 
-oc port-forward kiada-ssl 8080 8443 990
-oc logs kiada-ssl -c kiada
-oc logs kiada-ssl --all-containers
-oc get pods -w # watch status changing
-
-oc delete po kiada
-oc delete po --all
-oc delete -f pod.kiada.yaml,pod.kiada-ssl.yaml
+k delete po kiada
+k delete po --all
+k delete -f pod.kiada.yaml,pod.kiada-ssl.yaml
 ----
 
 === Copying files to and from containers
 
 [source,bash]
 ----
-oc cp kiada:html/index.html /tmp/index.html
-oc cp /tmp/index.html kiada:html/
+k cp kiada:html/index.html /tmp/index.html
+k cp /tmp/index.html kiada:html/
 ----
 
 == Sidecar pattern
 
 .Sidecar pattern One Pod Two Containers
-image::architecture/thumbs/sidecarpattern.png[]
+image::../architecture/thumbs/sidecarpattern.png[]
 
 [source,bash]
 ----
@@ -244,22 +241,22 @@ curl https://example.com:8443 --resolve example.com:8443:127.0.0.1 --cacert kiad
 
 [source,bash]
 ----
-oc get po kiada -o yaml | grep phase
-oc get pods -n myproject
-oc describe po kiada
-oc get po kiada -o json | jq .status.conditions
+k get po kiada -o yaml | grep phase
+k get pods -n myproject
+k describe po kiada
+k get po kiada -o json | jq .status.conditions
 [{
     "lastProbeTime": null,
     "lastTransitionTime": "2020-02-02T11:42:59Z",
     "status": "True",
     "type": "Initialized"
   }]
-oc get po kiada -o json | jq .status
-oc get pods -w
-oc get events -w
-oc logs kiada-liveness -c kiada -f
-oc exec kiada-liveness -c envoy -- tail -f /tmp/envoy.admin.log
-curl -X POST localhost:9901/healthcheck/fail
+k get po kiada -o json | jq .status
+k get pods -w
+k get events -w
+k logs kiada-liveness -c kiada -f
+k exec kiada-liveness -c envoy -- tail -f /tmp/envoy.admin.log
+curl -X POST lkalhost:9901/healthcheck/fail
 kubectl get po kiada-ssl -o json | jq .status.containerStatuses
 ----
 
@@ -295,7 +292,7 @@ In a long startup app scenario, you can increase the initialDelaySeconds, period
 
 . We've 3 possibilities of volume creation,
 .. Container's volume, isolated filesystem
-.. Pod's volume, can be shared with specific permissions
+.. Pod's volume can be shared with specific permissions
 .. External's volume, cross Pod lifecycles
 
 . When you add a volume to a pod, you must specify the volume type, they are:
@@ -310,14 +307,14 @@ Instead of pointing directly to an external storage volume
 
 
 .Mounting a filesystem into the file tree
-image::architecture/thumbs/attaching_dir_structure.png[]
+image::../architecture/thumbs/attaching_dir_structure.png[]
 
 .A volume mounted into more than one container
-image::architecture/thumbs/attached_volume_shared.png[]
+image::../architecture/thumbs/attached_volume_shared.png[]
 
 [source,bash]
 ----
-kubectl exec -it quiz -c mongo -- mongo
+k exec -it quiz -c mongo -- mongo
 ----
 
 == Persistent Volumes and Claims
@@ -325,18 +322,18 @@ kubectl exec -it quiz -c mongo -- mongo
 . To make pod manifests portable across different clusters envs, we need of an abstract way to claims storage definitions, a _PersistentVolumeClaim_ object connects the pod to this PersistentVolume object
 
 .Persistent Volume Claim
-image::architecture/thumbs/pvc.png[]
+image::../architecture/thumbs/pvc.png[]
 
 .Reading a crt file in a secret volume
 [source,bash]
 ----
-kubectl exec pod-name -c container-name -- cat /etc/certs/example-com.crt
+k exec pod-name -c container-name -- cat /etc/certs/example-com.crt
 ----
 
 == Exposing Pods with Services
 
 .Pods communication
-image::architecture/thumbs/pods_communications.png[]
+image::../architecture/thumbs/pods_communications.png[]
 
 When a pod sends a network packet to another pod, neither SNAT (Source NAT) nor DNAT (Destination NAT) is performed on the packet.
 This means that the source IP and port, and the destination IP and port, of packets exchanged directly between pods are never changed.
@@ -349,10 +346,10 @@ The containers in the pods can communicate with each other over the flat NAT-les
 From the perspective of the applications, the actual network topology between the nodes isn’t important
 
 .Service Object over Pods
-image::architecture/thumbs/service_load_balance_over_pods.png[]
+image::../architecture/thumbs/service_load_balance_over_pods.png[]
 
 .Flow Service Pods
-image::architecture/thumbs/flow-service-pods.png[]
+image::../architecture/thumbs/flow-service-pods.png[]
 
 [source,yaml]
 ----

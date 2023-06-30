@@ -13,5 +13,5 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Kubernetes Full Core Coverage :: AWS EKS Kubernetes-masterclass</name>
+  <name>Kubernetes Full Core Coverage :: AWS EKS Kubernetes :: Masterclass</name>
 </project>

@@ -1,5 +1,9 @@
 = AWS EKS Kubernetes-Masterclass
 
+== Links
+
+- https://github.com/stacksimplify/aws-eks-kubernetes-masterclass[AWS EKS K8s Masterclass]
+
 == Why K8s
 
 * Portable extensible open-source platform for managing containerized workloads
@@ -77,7 +81,7 @@ No resource found in default namespace will appear at this moment
 
 == Create & Associate IAM OIDC
 
-. To enable and use AWS IAM roles for k8s services accounts we must create & associate OIDC Identity provider
+. To enable and use AWS IAM roles for k8s services accounts, we must create & associate OIDC Identity provider
 
 [source,bash]
 ----
@@ -212,7 +216,7 @@ k set resources deployment/<<deployment_name>> -c=<<container_name>> --limits=cp
 .EKS externalName Service Concept
 image::../architecture/thumbs/externalName_EKS_concept.png[]
 
-[source, bash]
+[source,bash]
 ----
 k create deployment backend-app-dp \
   --image=stacksimplify/kube-hello-world:1.0.0
@@ -226,18 +230,98 @@ k get svc
 ----
 
 .Sample of NGINX Conf
-[source, html]
+[source,html]
 ----
 server {
     listen 80;
     server_name localhost;
     location / {
         # Update your backend app...
-        proxy_pass http://<<service_name>><<ns-full-dns>><<port>>;
+        proxy_pass http://<<service_name>><<ns-full-dns>>:<<port>>;
     }
     error_page 500 502 503 504 /50x.html;
     location = /50x.html {
         root /usr/share/nginx/html;
     }
 }
+----
+
+== EKS Block Storage Types
+
+.EKS Block Storage Types
+image::../architecture/thumbs/eks_storage_types.png[]
+
+* in-Tree Legacy
+* EBS/EFS/FSx CSi Driver Container Storage interface, with k8s 1.14 & later, FSx k8s 1.16 & later
+
+* AWS Fargate no support persistent storage
+
+* EBS provides block level storage volumes for use with Ec2 & Container instances, mounted these volumes as devices attached to an instance that are exposed as storage volumes that persist independently of lif Ec2 or Container, and most we can dynamically change the configuration of a volume attached to an instance
+
+
+=== Install EBS CSI Driver Steps
+
+. Create IAM Policy
+. Associate IAM Policy to Worknode IAM Role
+. Install EVS CSI Driver
+
+////
+* Implementation Details
+
+Review Policy
+Name: * EBS_CSI_Driver_EKS_v01
+Description: Empty
+
+////
+
+.IAM Policy to EC2 Association K8s v1.14 or later
+[source,json]
+----
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AttachVolume",
+        "ec2:CreateSnapshot",
+        "ec2:CreateTags",
+        "ec2:CreateVolume",
+        "ec2:DeleteSnapshot",
+        "ec2:DeleteTags",
+        "ec2:DeleteVolume",
+        "ec2:DescribeInstances",
+        "ec2:DescribeSnapshots",
+        "ec2:DescribeTags",
+        "ec2:DescribeVolumes",
+        "ec2:DetachVolumes"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+----
+
+.Get IAM role Worker Nodes
+[source,bash]
+----
+kubectl -n kube-system describe configmap aws-auth
+# rolearn: arn:aws:iam::xxxx/ekstctl-xxxx
+kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/?ref=master"
+kubectl get pods -n kube-system
+# ebs-csi-controller-xxx
+# user-mgmt folder after all manifests created
+kubectl apply -f user-mgmt/
+kubeclt get cm
+kubeclt get pv
+kubectl get sc
+kubectl get pvc
+# Applying all the changes again
+kubectl apply -f user-mgmt/
+kubectl get pods -l app=mysql
+# Connect to MYSQL Database over the Pod
+kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h mysql -root_Pwd
+> msql show schemas
+#
+kubectl get sc,pvc,pv
 ----

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-backend-v01-jvm-dep
+  labels:
+    app: api-backend-v01-jvm
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-backend-v1
+  template:
+    metadata:
+      labels:
+        app: api-backend-v1
+    spec:
+      containers:
+        - name: api-backend-jvm
+          imagePullPolicy: IfNotPresent
+          image: douglasdb/api-backend-v01-jvm:1.0
+          # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+          resources:
+            requests:
+              memory: "128Mi"  # 128MiB of memory
+              cpu: "250m"  # 0.5 of CPU
+            limits:
+              memory: "256Mi" # 256MiB of memory
+              cpu: "500m" # 1 CPU of CPU
+
+

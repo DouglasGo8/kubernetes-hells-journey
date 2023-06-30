@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-mgmt-microservice-dp
+  labels:
+    app: user-mgmt-microservice-backend
+spec:
+  selector:
+    matchLabels:
+      app: user-mgmt-microservice-backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: user-mgmt-microservice-backend
+    spec:
+      containers:
+        - name: user-mgmt-microservice-backend
+          image: stacksimplify/kube-usermanagement-microservice:1.0.0
+          ports:
+            - containerPort: 8095
+          env:
+            - name: DB_HOSTNAME
+              value: "mysql"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "usermgmtdb"
+            - name: DB_USERNAME
+              value: "root"
+            - name: DB_PASSWORD
+              value: "root_Pwd"

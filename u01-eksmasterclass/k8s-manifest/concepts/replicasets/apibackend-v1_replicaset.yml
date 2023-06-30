@@ -1,18 +1,20 @@
 apiVersion: apps/v1
 kind: ReplicaSet
 metadata:
-  name: api-backend-v01-jvm-rs
+  name: api-backend-v01-jvm-rps
   labels:
-    app: api-backend-v01-jvm-rs
+    app: api-backend-v01-jvm-rps
 spec:
   selector:
     matchLabels:
-      app: api-backend-v01-jvm-rs
+      app: api-backend-v1-rps
+      tier: backend
   replicas: 3
   template:
     metadata:
       labels:
-        app: api-backend-v01-jvm-rs
+        app: api-backend-v1-rps
+        tier: backend
     spec:
       containers:
         - name: api-backend-jvm
@@ -21,10 +23,10 @@ spec:
           # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
           resources:
             requests:
-              memory: "256Mi"  # 256MiB of memory
-              cpu: "250m"  # 250m of memory
+              memory: "128Mi"  # 128MiB of memory
+              cpu: "250m"  # 0.5 of CPU
             limits:
-              memory: "512Mi" # 512MiB of memory
-              cpu: "500m" # 1 of CPU
+              memory: "256Mi" # 256MiB of memory
+              cpu: "500m" # 1 CPU of CPU
 
 

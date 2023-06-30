@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-eksmaster-restapi-dep
+  labels:
+    app:  backend-eksmaster-restapi
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend-eksmaster-restapi
+  template:
+    metadata:
+      labels:
+        app: backend-eksmaster-restapi
+        tier: backend
+    spec:
+      containers:
+        - name: backend-restapi
+          image: stacksimplify/kube-helloworld:1.0.0
+          ports:
+            - containerPort: 8080
+
+
