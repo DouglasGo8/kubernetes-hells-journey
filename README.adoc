@@ -1,5 +1,6 @@
-= Kubernetes the Hell's Path
+= Kubernetes the Hell's Journey
 
-* Dive into
-** b01-k8sinaction2nd - README.adoc
-** u01-eksmasterclass - README.adoc
+== Links
+
+. link:u01-eksmasterclass/README.adoc[u01-eksmasterclass - README.adoc]
+. link:b01-k8sinaction2nd/README.adoc[b01-k8sinaction2nd - README.adoc]

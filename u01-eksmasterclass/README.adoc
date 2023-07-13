@@ -325,3 +325,37 @@ kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h 
 #
 kubectl get sc,pvc,pv
 ----
+
+[source,bash]
+----
+echo -n 'welcome1' | base64
+----
+
+== Probes
+
+* K8s uses *liveness probe* to know when to restart a container
+* K8s uses *readiness probe* to know when a container is ready to accept traffic
+* K8s uses *startup probe* to know when a container application has started
+* Options for probes are: command, httpGet, tpc*
+
+.Probes Sample
+[source, yaml]
+----
+livenessProbe:
+  exec:
+    command:
+    - /bin/sh
+    - -c
+    - nc -z localhost 8095
+  initialDelaySeconds: 60
+  periodSeconds: 10
+---
+readinessProbe:
+  httpGet:
+    path: /myservice/health-status
+    port: 8095
+  initialDelaySeconds: 60
+  periodSeconds: 10
+----
+
+

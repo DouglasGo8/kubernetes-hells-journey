@@ -49,79 +49,6 @@ brew upgrade minikube
 
 '''
 
-=== Quarkus Template info
-
-==== Call App services
-
-[source,shellscript]
-----
-curl http://localhost:12080/api/greeting/meh.ho
-----
-
-==== Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
-
-[source,shellscript]
-----
-./mvnw compile quarkus:dev
-----
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
-
-==== Packaging and running the application
-
-The application can be packaged using:
-
-[source,shellscript]
-----
-./mvnw package
-----
-
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-[source,shellscript]
-----
-./mvnw package -Dquarkus.package.type=uber-jar
-----
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-==== Creating a native executable
-
-You can create a native executable using:
-
-[source,shellscript]
-----
-./mvnw package -Pnative
-----
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-[source,shellscript]
-----
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-----
-
-You can then execute your native executable with: `./target/api-backend-v01-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling[maven-tooling].
-
-* Camel JSON Path https://camel.apache.org/camel-quarkus/latest/reference/extensions/jsonpath.html[guide]: Evaluate a JSONPath expression against a JSON message body
-* Camel Core https://camel.apache.org/camel-quarkus/latest/reference/extensions/core.html[guide]: Camel core functionality and basic Camel languages: Constant, ExchangeProperty, Header, Ref, Simple and Tokenize
-* Camel Direct https://camel.apache.org/camel-quarkus/latest/reference/extensions/direct.html[guide]: Call another endpoint from the same Camel Context synchronously
-* Camel Jackson https://camel.apache.org/camel-quarkus/latest/reference/extensions/jackson.html[guide]: Marshal POJOs to JSON and back using Jackson
-* Camel Bean https://camel.apache.org/camel-quarkus/latest/reference/extensions/bean.html[guide]: Invoke methods of Java beans
-* Camel Rest https://camel.apache.org/camel-quarkus/latest/reference/extensions/rest.html[guide]: Expose REST services and their OpenAPI Specification or call external REST services
-
-
-'''
-
 === Introduction Kubernetes API
 
 .A K8s cluster objects
@@ -205,8 +132,12 @@ k logs kiada --tail=10
 k exec kiada -- ps aux
 k exec kiada -- curl -s lkalhost:8080
 k exec kiada curl -s lkalhost:8080
+
+# Running an interactive shell in the container
 k exec -it app-backend-v01-ch05 -- bash
 k attach app-backend-v01-ch05
+
+# Note the use of the additional option -i in the command. It instructs kubectl to pass its standard input to the container.
 k attach -i kiada-stdin # version two using stdin image
 # The kubectl port-forward command can also forward connections to services instead of pods
 k port-forward kiada-ssl 8080 8443 990
@@ -217,6 +148,11 @@ k get pods -w # watch status changing
 k delete po kiada
 k delete po --all
 k delete -f pod.kiada.yaml,pod.kiada-ssl.yaml
+
+# Copying files to and from containers <<Pod
+k cp app-backend-v01-ch05:folder/file.html /tmp/index.html
+k exec app-backend-v01-ch05 -- ps aux
+k exec app-backend-v01-ch05 -- curl -s localhost:8080
 ----
 
 === Copying files to and from containers
