@@ -2,5 +2,9 @@
 
 == Links
 
+- https://catalog.redhat.com/software/containers/search[RedHat Certified container images]
+
+'''
+
 . link:u01-eksmasterclass/README.adoc[u01-eksmasterclass - README.adoc]
 . link:b01-k8sinaction2nd/README.adoc[b01-k8sinaction2nd - README.adoc]

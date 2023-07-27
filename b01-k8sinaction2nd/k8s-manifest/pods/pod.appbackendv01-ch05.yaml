@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-backendv01-ch05
+spec:
+  containers:
+    - name: app-backendv01-ch05
+      #image: douglasdb/api-backend-v01-jvm:1.0
+      image: douglasdb/app-backend-v1-native:1.0
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8080

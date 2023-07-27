@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   # Production non-common practice
   name: mysql
+  namespace: k8s-inaction
 spec:
   replicas: 1
   strategy:

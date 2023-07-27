@@ -324,6 +324,9 @@ kubectl run -it --rm --image=mysql:5.6 --restart=Never mysql-client -- mysql -h 
 > msql show schemas
 #
 kubectl get sc,pvc,pv
+k get all --namespace kube-system
+# Connect over RDS into EKS using kubectl
+kubeclt run -it --rm --image=mysql:5.7.22 --restart=Never mysql-client -- mysql -h host.rds.mysql -u user -pdbpassword
 ----
 
 [source,bash]
@@ -339,7 +342,7 @@ echo -n 'welcome1' | base64
 * Options for probes are: command, httpGet, tpc*
 
 .Probes Sample
-[source, yaml]
+[source,yaml]
 ----
 livenessProbe:
   exec:
@@ -358,4 +361,41 @@ readinessProbe:
   periodSeconds: 10
 ----
 
+[source,bash]
+----
+k get nodes
+k describe node <<node>>
+
+----
+
+.Classic Load Balance Communication Architecture
+image::../architecture/thumbs/ClassicLoadBalancerArch.drawio.png[]
+
+.Create Private NodeGroup
+[source,bash]
+----
+eksctl get nodegroup --cluster=cluster-name
+eksctl delete nodegroup nodegroup-name --cluster cluster-name
+#
+eksctl create node-group --cluster=eksdemo1 \
+  --region=sa-east-1 \
+  --name=eksdemo1-ng-private-1
+  --node-type=t3.medium \
+  --nodes-min=2 \
+  --nodes-max=4 \
+  --node-volume-size=20 \
+  --ssh-access \
+  --ssh-public-key=key-demo \
+  --managed \
+  --asg-access \
+  --external-dns-access \
+  --full-ecr-access \
+  --appmesh-access \
+  --node-private-networking # private Node Group, no public-ip
+
+kubectl get nodes -o wide
+----
+
+.Network Load Balance Communication Architecture
+image::../architecture/thumbs/NetworkLoadBalancerArch.drawio.png[]
 

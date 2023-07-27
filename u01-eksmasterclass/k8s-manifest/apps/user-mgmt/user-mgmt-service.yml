@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: user-mgmt-svc
+  namespace: k8s-inaction
   labels:
     app: user-mgmt-microservice-backend
 spec:
@@ -11,4 +12,4 @@ spec:
   ports:
     - port: 8095 # app port
       targetPort: 8095 # container port
-      nodePort: 31231 # k8s exposed node port
+      #nodePort: 31231 # k8s exposed node port

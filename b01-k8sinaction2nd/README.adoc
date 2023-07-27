@@ -22,7 +22,7 @@ minikube start
 minikube start --driver=docker --alsologtostderr
 
 minikube addons enable registry
-minikube dashboard
+minikube dashboard &
 minikube dashboard --url
 # or kubens
 kubectl create namespace k8s-inaction
@@ -87,7 +87,7 @@ image::../architecture/thumbs/pod_share_same_network_interface.jpg[]
 
 . Several containers in a single pod is only appropriate if the application consists of a primary process and one or more processes that complement the operation of the primary process.
 
-.Sidecar Container in same Pod
+.Sidecar Container in the same Pod
 image::../architecture/thumbs/sidecar.png[]
 
 ==== How to decide whether to split containers into multiple pods
@@ -100,9 +100,29 @@ When deciding whether to use the sidecar pattern and place containers in a singl
 * Do they have to be scaled together?
 * Can a single node meet their combined resource needs?
 
-.Create Manifest suing kubectl
-[source,shellscript]
+.Generating native build
+[source,bash]
 ----
+mvn clean compile package -DskipTests -Dnative \
+  -Dquarkus.native.container-build=true
+#\
+#  -Dquarkus.native.builder-image=quarkus/mandrel-2-rhel8:22.3-21
+docker build -t app-backend-v1-native -f src/main/docker/Dockerfile.native .
+docker tag app-backend-v1-native douglasdb/app-backend-v1-native:1.0
+docker push douglasdb/app-backend-v1-native:1.0
+k apply -f pod.appbackendv01-ch05.yaml
+k get pod app-backendv01-ch05 -n k8s-hells  --template='{{(index (index .spec.containers 0).ports 0).containerPort}}{{"\n"}}'
+# Non-ssl scenario
+k port-forward app-backendv01-ch05 8080:80
+# SSL scenario
+k port-forward app-backendv01-ch05-ssl 8080:80 8443 9901
+k logs app-backendv01-ch05-ssl -c app-backendv01-ch05-ssl
+----
+
+.Create Manifest suing kubectl
+[source,bash]
+----
+
 k explain pods
 k run mypod --image=tag/image:1.0 -dry-run=client -o yaml > mypod.yaml
 ----
@@ -120,6 +140,7 @@ k describe pod app-backend-v01-ch05
 k get events -w
 k get pod app-backend-v01-ch05 -o wide
 k run --image=curlimages/curl -it --restart=Never --rm client-pod curl {{IP_POD}}:8080
+
 k port-forward kiada 8080
 k logs kiada
 k logs kiada -f
@@ -130,8 +151,8 @@ k logs kiada --since-time=2020-02-01T09:50:00Z
 # Reduce total lines
 k logs kiada --tail=10
 k exec kiada -- ps aux
-k exec kiada -- curl -s lkalhost:8080
-k exec kiada curl -s lkalhost:8080
+k exec kiada -- curl -s localhost:8080
+k exec kiada curl -s localhost:8080
 
 # Running an interactive shell in the container
 k exec -it app-backend-v01-ch05 -- bash
@@ -146,9 +167,11 @@ k logs kiada-ssl --all-containers
 k get pods -w # watch status changing
 
 k delete po kiada
+k delete po kiada --wait=false
+k delete po --all
 k delete po --all
 k delete -f pod.kiada.yaml,pod.kiada-ssl.yaml
-
+k delete all --all
 # Copying files to and from containers <<Pod
 k cp app-backend-v01-ch05:folder/file.html /tmp/index.html
 k exec app-backend-v01-ch05 -- ps aux
@@ -192,7 +215,7 @@ k get pods -w
 k get events -w
 k logs kiada-liveness -c kiada -f
 k exec kiada-liveness -c envoy -- tail -f /tmp/envoy.admin.log
-curl -X POST lkalhost:9901/healthcheck/fail
+curl -X POST localhost:9901/healthcheck/fail
 kubectl get po kiada-ssl -o json | jq .status.containerStatuses
 ----
 
