@@ -113,7 +113,7 @@ docker push douglasdb/app-backend-v1-native:1.0
 k apply -f pod.appbackendv01-ch05.yaml
 k get pod app-backendv01-ch05 -n k8s-hells  --template='{{(index (index .spec.containers 0).ports 0).containerPort}}{{"\n"}}'
 # Non-ssl scenario
-k port-forward app-backendv01-ch05 8080:80
+k port-forward app-backendv01-ch05 8080:12080
 # SSL scenario
 k port-forward app-backendv01-ch05-ssl 8080:80 8443 9901
 k logs app-backendv01-ch05-ssl -c app-backendv01-ch05-ssl
@@ -176,6 +176,10 @@ k delete all --all
 k cp app-backend-v01-ch05:folder/file.html /tmp/index.html
 k exec app-backend-v01-ch05 -- ps aux
 k exec app-backend-v01-ch05 -- curl -s localhost:8080
+# 12080
+k port-forward app-backendv01-ch05 8080:12080
+#
+curl localhost:8080/api/greeting/douglas
 ----
 
 === Copying files to and from containers
@@ -198,8 +202,31 @@ curl https://example.com:8443 --resolve example.com:8443:127.0.0.1 --cacert kiad
 
 == Pod Lifecycles
 
+[%header,cols=2*]
+|===
+|Pod Phase
+|Description
+
+|Pending
+|After you create the Pod object, this is its initial phase. Until the pod is scheduled to a node and the images of its containers are pulled and started, it remains in this phase.
+
+|Running
+|At least one of the pod’s containers is running.
+|Succeeded
+|Pods that aren’t intended to run indefinitely are marked as Succeeded when all their containers complete successfully.
+|Failed
+|When a pod is not configured to run indefinitely and at least one of its containers terminates unsuccessfully, the pod is marked as Failed.
+|Unknown
+|The state of the pod is unknown because the Kubelet has stopped reporting communicating with the API server. Possibly the worker node has failed or has disconnected from the network.
+|===
+
+.Managing Pod Lifecycle
 [source,bash]
 ----
+k get po app-backendv01-ch05 -o json | jq .status.phase
+k get po app-backendv01-ch05 -o json | jq .status.conditions
+k get po app-backendv01-ch05 -o json | jq .status.containerStatuses
+
 k get po kiada -o yaml | grep phase
 k get pods -n myproject
 k describe po kiada
@@ -219,9 +246,19 @@ curl -X POST localhost:9901/healthcheck/fail
 kubectl get po kiada-ssl -o json | jq .status.containerStatuses
 ----
 
-* restartPolicy - default #_Always_# | #_OnFailure_# | #_Never_#
+[%header,cols=2*]
+|===
+|Restart Policy
+|Description
+|Always
+|Container is restarted regardless of the exit code the process in the container terminates with. This is the default restart policy.
+|OnFailure
+|The container is restarted only if the process terminates with a non-zero exit code, which by convention indicates failure.
+|Never
+|The container is never restarted - not even when it fails.
+|===
 
-In a long startup app scenario, you can increase the initialDelaySeconds, periodSeconds or failureThreshold
+* In a long startup app scenario, you can increase the initialDelaySeconds, periodSeconds or failureThreshold
 
 [source,yaml]
 ----

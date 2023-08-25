@@ -5,8 +5,7 @@ metadata:
 spec:
   containers:
     - name: app-backendv01-ch05
-      #image: douglasdb/api-backend-v01-jvm:1.0
-      image: douglasdb/app-backend-v1-native:1.0
+      image: douglasdb/app-backend-v1-native:1.1
       imagePullPolicy: IfNotPresent
       ports:
-        - containerPort: 8080
+        - containerPort: 12080
