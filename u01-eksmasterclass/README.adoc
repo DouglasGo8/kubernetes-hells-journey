@@ -548,3 +548,10 @@ spec:
   - port: 80
     targetPort: 80
 ----
+
+=== Kubernetes External DNS (EKS + External DNS)
+
+. With External DNS we can _automatically_ add it for a Kubernetes _Ingress Service_ or Kubernetes _Service_ by defining it as Annotation
+
+.AWS EKD + External DNS
+image::../architecture/thumbs/awsEKS_externalDNS.png[]

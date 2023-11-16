@@ -190,7 +190,7 @@ k cp kiada:html/index.html /tmp/index.html
 k cp /tmp/index.html kiada:html/
 ----
 
-== Sidecar pattern
+==== Sidecar pattern
 
 .Sidecar pattern One Pod Two Containers
 image::../architecture/thumbs/sidecarpattern.png[]
@@ -200,7 +200,7 @@ image::../architecture/thumbs/sidecarpattern.png[]
 curl https://example.com:8443 --resolve example.com:8443:127.0.0.1 --cacert kiada-ssl-proxy-0.1/example-com.crt
 ----
 
-== Pod Lifecycles
+=== Pod Lifecycles
 
 [%header,cols=2*]
 |===
@@ -246,6 +246,8 @@ curl -X POST localhost:9901/healthcheck/fail
 kubectl get po kiada-ssl -o json | jq .status.containerStatuses
 ----
 
+* If init containers are defined in the pod and one of the pod’s regular containers is restarted, the init containers are not executed again
+
 [%header,cols=2*]
 |===
 |Restart Policy
@@ -259,6 +261,59 @@ kubectl get po kiada-ssl -o json | jq .status.containerStatuses
 |===
 
 * In a long startup app scenario, you can increase the initialDelaySeconds, periodSeconds or failureThreshold
+. Lifecycle hooks, pre-start and pre-stop
+
+[source,bash]
+----
+kubectl get po <<pod-name>> -o json | jq .status.containerStatuses
+----
+
+=== Liveness Probe
+
+* You can specify a liveness probe for each container in the pod, Kubernetes runs the probe periodically to ask the application if it’s still alive and well
+* Liveness probes can only be used in the pod’s regular containers.
+They can’t be defined in init containers
+* _HTTP GET_, _TCP Socket_ and _Exec_ are a possible Probe
+
+.Liveness Probe Sample
+[source,yaml]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kiada-liveness
+spec:
+  containers:
+  - name: kiada
+    image: luksa/kiada:0.1
+    ports:
+    - name: http
+      containerPort: 8080
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080
+  - name: envoy
+    image: luksa/kiada-ssl-proxy:0.1
+    ports:
+    - name: https
+      containerPort: 8443
+    - name: admin
+      containerPort: 9901
+    livenessProbe:
+      httpGet:
+        path: /ready
+        port: admin # 9901
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      timeoutSeconds: 2
+      failureThreshold: 3
+----
+
+* If the application responds with an HTTP status between 200 and 399, the application is considered healthy.
+
+.Configuration and operations of a Liveness Probe
+image::../architecture/thumbs/livenessProbeCycle.png[]
 
 [source,yaml]
 ----
@@ -282,7 +337,72 @@ kubectl get po kiada-ssl -o json | jq .status.containerStatuses
       failureThreshold: 2
 ----
 
-. Lifecycle hooks, pre-start and pre-stop
+.The only indication that Kubernetes is executing the probe is found in the container logs
+[source,bash]
+----
+k logs kiad-liveness -c kiada -f
+# specific log management
+k exec kiada-liveness -c envoy -- tail -f /tmp/envoy.admin.log
+----
+
+[source,log]
+----
+$ kubectl describe po kiada-liveness
+Name:           kiada-liveness
+...
+Containers:
+  ...
+  envoy:
+    ...
+    State:          Running
+      Started:      Sun, 31 May 2020 21:33:13 +0200
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Sun, 31 May 2020 21:16:43 +0200
+      Finished:     Sun, 31 May 2020 21:33:13 +0200
+    ...
+----
+
+* When the container defined in the listing starts, the application has 120 seconds to start responding to requests.
+Kubernetes performs the startup probe every 10 seconds and makes a maximum of 12 attempts.
+
+[source,yaml]
+----
+...
+  containers:
+  - name: kiada
+    image: luksa/kiada:0.1
+    ports:
+    - name: http
+      containerPort: 8080
+    startupProbe:
+      httpGet:
+        path: /
+        port: http
+      periodSeconds: 10
+      failureThreshold:  12
+    livenessProbe:
+      httpGet:
+        path: /
+        port: http
+      periodSeconds: 5
+      failureThreshold: 2
+----
+
+* The post-start lifecycle hook is invoked immediately after the container is created, we can use the exec type of the hook to execute an additional process as the main process starts, or you can use the httpGet hook to send an HTTP request to the application running in the container to perform some type of initialization or warm-up procedure.
+
+* Although the post-start hook runs asynchronously with the main container process, it affects the container in two ways.
+. The container remains in the Waiting state with the reason ContainerCreating until the hook invocation is completed.
+. The phase of the pod is Pending.
+If you run the kubectl logs command at this point, it refuses to show the logs, even though the container is running.
+The kubectl port-forward command also refuses to forward ports to the pod.
+
+[WARNING]
+====
+Using an HTTP GET post-start hook might cause the container to enter an endless restart loop.
+Never configure this type of lifecycle hook to target the same container or any other container in the same pod.
+====
 
 == Attaching storage Volumes to Pods
 
