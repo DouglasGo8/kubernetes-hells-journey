@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: arsenal-batch
+  name: myapp-batch
 spec:
   # default for completions and parallelism
   template:
     metadata:
-      name: arsenal-batch
+      name: myapp-batch
     spec:
       containers:
-        - name: arsenal-batch
-          image: douglasdb/arsenal-batch:1.0
+        - name: myapp-batch
+          image: douglasdb/myapp-batch:1.0
       restartPolicy: OnFailure
