@@ -16,4 +16,11 @@
 
   <name>Kubernetes Full Core Coverage :: Kubernetes is Action 2nd :: Say Hello MicroService</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-microprofile-health</artifactId>
+    </dependency>
+  </dependencies>
+
 </project>

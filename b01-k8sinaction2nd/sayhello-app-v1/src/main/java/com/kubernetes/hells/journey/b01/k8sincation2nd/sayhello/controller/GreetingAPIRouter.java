@@ -3,6 +3,8 @@ package com.kubernetes.hells.journey.b01.k8sincation2nd.sayhello.controller;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.NoArgsConstructor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.impl.health.DefaultHealthCheckRegistry;
+import org.apache.camel.impl.health.RoutesHealthCheckRepository;
 import org.apache.camel.model.rest.RestBindingMode;
 
 @ApplicationScoped
@@ -11,6 +13,8 @@ public class GreetingAPIRouter extends RouteBuilder {
 
   @Override
   public void configure() throws Exception {
+
+
     restConfiguration().component("netty-http")
             // ---------- CONTEXT PATH BEGIN ---------------------
             .contextPath("/api")
@@ -19,9 +23,7 @@ public class GreetingAPIRouter extends RouteBuilder {
             .host("0.0.0.0").port("{{server.port}}").bindingMode(RestBindingMode.auto);
 
     rest().path("/greeting/")
-            .get("/{name}")
-            .to("direct:saysHi");
-
-
+              .get("/{name}")
+                .to("direct:saysHi");
   }
 }

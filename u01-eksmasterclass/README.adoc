@@ -516,7 +516,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  ame: app1-nginx-deployment
+  name: app1-nginx-deployment
   labels:
     app: app1-nginx
 spec:
@@ -553,5 +553,11 @@ spec:
 
 . With External DNS we can _automatically_ add it for a Kubernetes _Ingress Service_ or Kubernetes _Service_ by defining it as Annotation
 
-.AWS EKD + External DNS
-image::../architecture/thumbs/awsEKS_externalDNS.png[]
+=== AWS Fargate
+
+* Fargate is a _Serverless compute platform_ for containers on AWS, provides _on-demand, right-sized compute capacity_ for containers, EKS integrate K8s with Fargate by using controllers, these controllers run as part of the EKS managed _Kubernetes control plane_ and are responsible for scheduling native kubernetes pods onto fargate
+
+* Fargate 1:1 - 1Pod/1Host, Managed Nodes 1:many, same host Nth Pods
+
+.EKS Deployment Options - Mixed Mode
+image::../architecture/thumbs/eks_profiles.png[]

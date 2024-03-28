@@ -10,6 +10,7 @@
 - https://github.com/stacksimplify/docker-fundamentals[Docker fundamentals]
 - https://github.com/stacksimplify/kubernetes-fundamentals[K8s fundamentals]
 - https://kubernetes.io/docs/reference/kubectl/cheatsheet/[kubeclt Cheat Sheet]
+- https://github.com/apache/camel-quarkus-examples/tree/main/health[Camel Heath check Registry]
 
 == Minikube Configuration
 
@@ -103,13 +104,13 @@ When deciding whether to use the sidecar pattern and place containers in a singl
 .Generating native build
 [source,bash]
 ----
-mvn clean compile package -DskipTests -Dnative \
-  -Dquarkus.native.container-build=true
+mvn clean compile package -DskipTests -Dnative -Dquarkus.native.container-build=true
 #\
 #  -Dquarkus.native.builder-image=quarkus/mandrel-2-rhel8:22.3-21
 docker build -t app-backend-v1-native -f src/main/docker/Dockerfile.native .
 docker tag app-backend-v1-native douglasdb/app-backend-v1-native:1.0
 docker push douglasdb/app-backend-v1-native:1.0
+#
 k apply -f pod.appbackendv01-ch05.yaml
 k get pod app-backendv01-ch05 -n k8s-hells  --template='{{(index (index .spec.containers 0).ports 0).containerPort}}{{"\n"}}'
 # Non-ssl scenario
@@ -177,9 +178,34 @@ k cp app-backend-v01-ch05:folder/file.html /tmp/index.html
 k exec app-backend-v01-ch05 -- ps aux
 k exec app-backend-v01-ch05 -- curl -s localhost:8080
 # 12080
-k port-forward app-backendv01-ch05 8080:12080
+#k port-forward app-backendv01-ch05 8080:12080
+k port-forward backend-api-ch05-liveness 8080:80
 #
-curl localhost:8080/api/greeting/douglas
+----
+
+.Specific for Native Compilation
+[source, shell]
+----
+➜  ~ curl -v -X GET -H "Content-type: application/json"  http://localhost:8080/api/greeting/douglas
+Note: Unnecessary use of -X or --request, GET is already inferred.
+*   Trying [::1]:8080...
+* Connected to localhost (::1) port 8080
+> GET /api/greeting/douglas HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/8.4.0
+> Accept: */*
+> Content-type: application/json
+>
+< HTTP/1.1 200 OK
+< content-length: 52
+< Accept: */*
+< name: douglas
+< User-Agent: curl/8.4.0
+< content-type: application/json
+< connection: keep-alive
+<
+* Connection #0 to host localhost left intact
+"Hi douglas we are now in backend-api-ch05-liveness"%
 ----
 
 === Copying files to and from containers
@@ -281,34 +307,32 @@ They can’t be defined in init containers
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kiada-liveness
+  labels:
+    app: backend-api-ch05-liveness
+  name: backend-api-ch05-liveness
 spec:
   containers:
-  - name: kiada
-    image: luksa/kiada:0.1
-    ports:
-    - name: http
-      containerPort: 8080
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 8080
-  - name: envoy
-    image: luksa/kiada-ssl-proxy:0.1
-    ports:
-    - name: https
-      containerPort: 8443
-    - name: admin
-      containerPort: 9901
-    livenessProbe:
-      httpGet:
-        path: /ready
-        port: admin # 9901
-      initialDelaySeconds: 10
-      periodSeconds: 5
-      timeoutSeconds: 2
-      failureThreshold: 3
+    - name: backend-api-ch05-liveness
+      image: douglasdb/app-backend-v1-native:1.0
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 12080
+      livenessProbe:
+        httpGet:
+          port: 8080
+          path: /q/health
+        # the system performs the first probe ten seconds after starting the container
+        initialDelaySeconds: 3
+        # the probe is then performed every five seconds
+        periodSeconds: 3
+        # the probe handler in the container must return in two seconds or it be considered failed
+        timeoutSeconds: 2
+        # if the probe fails three consecutive times, the container is restarted
+        failureThreshold: 3
 ----
+
+image::../architecture/thumbs/api-tag-v1.0-liveness.png[]
 
 * If the application responds with an HTTP status between 200 and 399, the application is considered healthy.
 
