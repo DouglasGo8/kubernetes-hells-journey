@@ -289,6 +289,36 @@ kubectl get po kiada-ssl -o json | jq .status.containerStatuses
 * In a long startup app scenario, you can increase the initialDelaySeconds, periodSeconds or failureThreshold
 . Lifecycle hooks, pre-start and pre-stop
 
+
+* _Post-start_, which are executed when the container starts, and
+* _Pre-stop_, which are executed shortly before the container
+
+[source, bash]
+----
+# in case of Pod take a long time to start, or  can’t be executed or returns a non-zero exit code
+# we can looking internal process
+k exec pod-name --ps x
+k get pods -w
+----
+
+WARNING: Using an HTTP GET post-start hook might cause the container to enter an endless restart loop. Never configure this type of lifecycle hook to target the same container or any other container in the same pod.
+
+.Why doesn’t my application receive the TERM signal?
+****
+
+Many developers make the mistake of defining a pre-stop hook just to send a TERM signal to their applications in the pre-stop hook. They do this when they find that their application never receives the TERM signal. The root cause is usually not that the signal is never sent, but that it is swallowed by something inside the container. This typically happens when you use the shell form of the ENTRYPOINT or the CMD directive in your Dockerfile. Two forms of these directives exist.
+
+The exec form is: `+ENTRYPOINT ["/myexecutable", "1st-arg", "2nd-arg"]+`
+
+The shell form is: `+ENTRYPOINT /myexecutable 1st-arg 2nd-arg+`
+
+When you use the exec form, the executable file is called directly. The process it starts becomes the root process of the container. When you use the shell form, a shell runs as the root process, and the shell runs the executable as its child process. In this case, the shell process is the one that receives the TERM signal. Unfortunately, it doesn’t pass this signal to the child process.
+
+In such cases, instead of adding a pre-stop hook to send the TERM signal to your app, the correct solution is to use the exec form of ENTRYPOINT or CMD.
+
+Note that the same problem occurs if you use a shell script in your container to run the application. In this case, you must either intercept and pass signals to the application or use the exec shell command to run the application in your script.
+****
+
 [source,bash]
 ----
 kubectl get po <<pod-name>> -o json | jq .status.containerStatuses

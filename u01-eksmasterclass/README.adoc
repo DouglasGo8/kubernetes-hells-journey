@@ -555,9 +555,38 @@ spec:
 
 === AWS Fargate
 
-* Fargate is a _Serverless compute platform_ for containers on AWS, provides _on-demand, right-sized compute capacity_ for containers, EKS integrate K8s with Fargate by using controllers, these controllers run as part of the EKS managed _Kubernetes control plane_ and are responsible for scheduling native kubernetes pods onto fargate
-
+* Fargate is a _Serverless compute platform_ for container on AWS
+* Fargate provides _on-demand_, _right-sized compute capacity_ for containers
+* EKS integrates Kubernetes with Fargate by using _controllers_ that are built by AWS using the _upstream, extensible model_ provided by Kubernetes
+* These controllers run as part of the _EKS managed Kubernetes control plane_ and are responsible for _scheduling_ native Kubernetes pods onto Fargate
+* The _Fargate controllers_ include a _new scheduler_ that runs alongside the _default Kubernetes scheduler_ in addition to several mutating and validating admission controllers
+* When we start a pod that _meets the criteria for running on Fargate_, the Fargate controllers running in the cluster recognize, update and _schedule the pod on Fargate_
 * Fargate 1:1 - 1Pod/1Host, Managed Nodes 1:many, same host Nth Pods
+* Each Pod runs in an _isolated compute environment_
+* _Only pay_ for resources you need to run your pods
+* Includes _native AWS integrations_ for networking and security
 
 .EKS Deployment Options - Mixed Mode
 image::../architecture/thumbs/eks_profiles.png[]
+
+.EKS Fargate Comparison
+image::../architecture/thumbs/FargateVsManagedVsUnmaged.png[]
+
+.eksclt Create Fargate profiles (YAML is a better choice)
+[source, bash]
+----
+eksctl create fargateprofile --cluster <<cluter_name>> \
+ --name <<fargate_profile_name>> \
+ --namespace <<k8s_namespace>>
+----
+
+=== Activities on EKS Fargate NLB
+
+- https://aws.amazon.com/elasticloadbalancing/features/[NLB Official Feat.]
+
+1. NLB Basics
+2. NLB TLS SSL
+3. NLB & External DNS
+4. NLB & Elastic IP
+5. Internal NLB
+6. NLB & Fargate
