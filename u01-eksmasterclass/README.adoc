@@ -572,7 +572,7 @@ image::../architecture/thumbs/eks_profiles.png[]
 .EKS Fargate Comparison
 image::../architecture/thumbs/FargateVsManagedVsUnmaged.png[]
 
-.eksclt Create Fargate profiles (YAML is a better choice)
+.eksctl Create Fargate profiles (YAML is a better choice)
 [source, bash]
 ----
 eksctl create fargateprofile --cluster <<cluter_name>> \
@@ -582,11 +582,11 @@ eksctl create fargateprofile --cluster <<cluter_name>> \
 
 === Activities on EKS Fargate NLB
 
-- https://aws.amazon.com/elasticloadbalancing/features/[NLB Official Feat.]
+- https://aws.amazon.com/elasticloadbalancing/features/[NLB Official AWS]
 
-1. NLB Basics
-2. NLB TLS SSL
-3. NLB & External DNS
-4. NLB & Elastic IP
-5. Internal NLB
-6. NLB & Fargate
+- NLB Basics
+- NLB TLS SSL
+- NLB & External DNS
+- NLB & Elastic IP
+- Internal NLB
+- NLB & Fargate

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: camelapp-writer-watcher
+spec:
+  volumes:
+    - name: data
+      emptyDir: {}
+  containers:
+    - name: camelapp-watcher
+      image: douglasdb/appv1-emptydir-read:1.0
+      volumeMounts:
+        - mountPath: /tmp/lost
+          name: data
+    - name: camelapp-writer
+      image: douglasdb/appv1-emptydir-write:1.0
+      volumeMounts:
+        - mountPath: /tmp/lost
+          name: data

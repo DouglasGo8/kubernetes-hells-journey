@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-backendv01-ch05
+spec:
+  # A reduction of the termination grace period is rarely necessary
+  # kubectl delete po {{pod-name}} --grace-period 10
+  terminationGracePeriodSeconds: 5
+  containers:
+    - name: app-backendv01-ch05
+      image: douglasdb/app-backend-v1-native:1.1
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 12080
