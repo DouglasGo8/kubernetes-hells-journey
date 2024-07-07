@@ -11,10 +11,10 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Quotes {
 
   final String[] quotes = new String[]{
-          "I drink too much. The last time I gave a urine sample it had an olive in it.",
-          "My psychiatrist told me I was crazy and I said I want a second opinion. He said okay, you're ugly too",
-          "I am not afraid of an army of lions led by a sheep; I am afraid of an army of sheep led by a lion.",
-          "Management is doing things right; leadership is doing the right things.",
+          "I drink too much.\n",
+          "My psychiatrist told me I was crazy.\n",
+          "I am not afraid of an army of lions led by a sheep.\n",
+          "Management is doing things right.\n",
 
   };
 

@@ -533,6 +533,17 @@ image::../architecture/thumbs/pod-multiple-volumes.png[]
 
 [source,bash]
 ----
+./mvnw clean compile package -Pnative -Dquarkus.native.container-build=true -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+#
+docker build -t appv1-emptydir-read -f src/main/docker/Dockerfile.native .
+docker build -t appv1-emptydir-write -f src/main/docker/Dockerfile.native .
+#
+docker tag appv1-emptydir-read douglasdb/appv1-emptydir-read:
+docker tag appv1-emptydir-write douglasdb/appv1-emptydir-write:
+
+docker push douglasdb/appv1-emptydir-read:
+docker push douglasdb/appv1-emptydir-write:
+
 k apply -f camelapp_pod_quiz_ephemeral.yaml
 k port-forward quiz-camel-mongodb-app 8080:80
 
@@ -590,7 +601,8 @@ image:../architecture/thumbs/pod-mongodb-volume.png[]
 
 Each volume definition must include a _name_ and a type, which is indicated by the name of the nested field, (for example, emptyDir, gcePersistentDisk, nfs, and so on)
 
-The emptyDir volume type supports two fields for configuring the volume. They are explained in the following table.
+The emptyDir volume type supports two fields for configuring the volume.
+They are explained in the following table.
 
 [%header,cols=2*]
 |===
@@ -607,11 +619,58 @@ The emptyDir volume type supports two fields for configuring the volume. They ar
 |===
 
 .Kubectl apply two pods, Writer and Watcher
-[source, bash]
+[source,bash]
 ----
 k apply -f writer-watch
 ----
 
+==== Mouthing a volume in a container
+
+Defining a volume in the pod is only half of what you need to do to make it available in a container.
+The volume must also be mounted in the container.
+This is done by referencing the volume by name in the volumeMounts array in the container definition.
+
+.Full list of supported fields in a volume mount definition
+[%header,cols=2]
+|===
+|Field
+|Description
+
+|name
+|The name of the volume to mount. This #must match# one of the volumes defined in the pod.
+
+|mountPath
+|The path within the container at which to mount the volume
+
+|readOnly
+|Whether to mount the volume as read-only. Default to false
+
+|mountPropagation
+|Specifies what should happen if additional filesystem volumes are mounted inside the volume.
+
+Defaults to _None_, which means that the container won’t receive any mounts that are mounted by the host, and the host won’t receive any mounts that are mounted by the container.
+
+_HostToContainer_ means that the container will receive all mounts that are mounted into this volume by the host, but not the other way around.
+
+_Bidirectional_ means that the container will receive mounts added by the host, and the host will receive mounts added by the container.
+
+|subPath
+|Defaults to "" which indicates that the entire volume is to be mounted into the container. When set to a non-empty string, only the specified subPath within the volume is mounted into the container.
+
+|subPathExpr
+|ust like subPath but can have environment variable references using the syntax $(ENV_VAR_NAME). Only environment variables that are explicitly defined in the container definition are applicable. Implicit variables such as HOSTNAME will not be resolved.
+
+|===
+
+
+.The files in an emptyDir volume are stored in a directory in the host node’s filesystem
+image::../architecture/thumbs/07image012.png[]
+
+[source, bash]
+----
+k get po <<pod_name>> -o json | jq .metadata.uid
+k get po <<pod_name>> -o json | jq .spec.nodeName
+----
 
 == Persistent Volumes and Claims
 

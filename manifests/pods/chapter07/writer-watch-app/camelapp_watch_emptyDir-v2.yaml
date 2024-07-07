@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+
+metadata:
+  name: camelapp-writer-watcher
+spec:
+  volumes:
+    - name: shared-volume
+      emptyDir: { }
+      #tmpfs as fast as possible
+      # medium: Memory
+  containers:
+    # Same for sample section 7.6 A pod with two containers that share a volume
+    - name: camelapp-watcher
+      image: douglasdb/appv1-emptydir-read:2.0
+      imagePullPolicy: Always
+      volumeMounts:
+        - mountPath: /tmp/lost/output/
+          name: shared-volume
+          #readOnly: true
+    # ------------------------------------------------
+    - name: camelapp-writer
+      image: douglasdb/appv1-emptydir-write:2.0
+      imagePullPolicy: Always
+      volumeMounts:
+        - mountPath: /tmp/lost/input/
+          name: shared-volume

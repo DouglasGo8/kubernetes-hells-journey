@@ -19,5 +19,6 @@
       <groupId>org.apache.camel.quarkus</groupId>
       <artifactId>camel-quarkus-file-watch</artifactId>
     </dependency>
+
   </dependencies>
 </project>
