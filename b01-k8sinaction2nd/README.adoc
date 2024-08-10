@@ -672,6 +672,22 @@ k get po <<pod_name>> -o json | jq .metadata.uid
 k get po <<pod_name>> -o json | jq .spec.nodeName
 ----
 
+=== External Storage
+
+image::../architecture/thumbs/external-storage-pods.png[]
+
+==== Storage Technologies
+
+Other supported options are #iscsi# for mounting an iSCSI disk resource, glusterfs for a GlusterFS mount, rbd for a RADOS Block Device, flexVolume, cinder, cephfs, flocker, fc (Fibre Channel), and others. You don’t need to understand all these technologies. They’re mentioned here to show you that Kubernetes supports a wide range of these technologies, and you can use the technologies that are available in your environment or that you pref
+
+As the following figure shows, a network volume is mounted by the host node, and then the pod is given access to the mount point. #The underlying storage technology may not allow a volume to be attached to more than one node at a time in read/write mode#, but multiple pods on the same node can all use the volume in read/write mode.
+
+image::../architecture/thumbs/07image016.png[]
+
+Typically, a hostPath volume is used in cases where the pod needs to read or write files in the node’s filesystem that the processes running on the node read or generate, such as system-level logs.
+
+#The hostPath volume type is one of the most dangerous volume types in Kubernetes and is usually reserved for use in privileged pods only#
+
 == Persistent Volumes and Claims
 
 . To make pod manifests portable across different clusters envs, we need of an abstract way to claims storage definitions, a _PersistentVolumeClaim_ object connects the pod to this PersistentVolume object
