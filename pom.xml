@@ -3,26 +3,19 @@
         xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.kubernetes.hells.journey</groupId>
-  <artifactId>kubernetes-hells-journey</artifactId>
+  <groupId>com.kubernetes.masterclass</groupId>
+  <artifactId>kubernetes-masterclass</artifactId>
   <version>1.0</version>
   <packaging>pom</packaging>
 
   <name>Kubernetes Full Core Coverage</name>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>1.18.32</version>
-    </dependency>
-  </dependencies>
-
   <modules>
-    <module>b01-k8sinaction2nd</module>
-    <module>u01-eksmasterclass</module>
+    <module>k8s-inaction2nd</module>
+    <module>k8s-eksmasterclass</module>
   </modules>
 
 </project>

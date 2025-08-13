@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quiz
+spec:
+  containers:
+    - name: mongo
+      image: mongo
+    - name: camel-mongodb-app
+      # mongodb-app-v1 is a simple Camel Rest application that uses MongoDB as a database
+      image: douglasdb/camel-mongodb-app-v1
+      ports:
+        - name: http
+          containerPort: 8080
+      readinessProbe:
+        tcpSocket:
+          port: 8080
+        initialDelaySeconds: 10
